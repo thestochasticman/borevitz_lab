@@ -25,7 +25,7 @@ same caches, same reproducibility guarantees everywhere.
 | Package | Built on this core | What it does |
 |---|---|---|
 | [`pysentinel2`](https://github.com/thestochasticman/pysentinel2) | `Query`, `Config` | Self-filling local Sentinel-2 datacube — nothing downloaded twice |
-| [`pysilo`](https://github.com/thestochasticman/pysilo) | `Query`, `Config` | Cached SILO daily climate — fetch once per ~5 km grid point |
+| [`silo`](https://github.com/thestochasticman/silo) | `Query`, `Config` | Cached SILO daily climate — fetch once per ~5 km grid point |
 | [`PaddockTS`](https://github.com/thestochasticman/paddock-ts-local) | `Query`, `Config` | Paddock segmentation, time series, phenology, reports |
 
 ---
