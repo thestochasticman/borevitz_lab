@@ -27,6 +27,7 @@ same caches, same reproducibility guarantees everywhere.
 | [`pysentinel2`](https://github.com/thestochasticman/pysentinel2) | `Query`, `Config` | Self-filling local Sentinel-2 datacube — nothing downloaded twice |
 | [`pysilo`](https://github.com/thestochasticman/pysilo) | `Query`, `Config` | Cached SILO daily climate — fetch once per ~5 km grid point |
 | [`pyozwald`](https://github.com/thestochasticman/pyozwald) | `Query`, `Config` | Cached OzWALD meteorology + 8-day biophysical series — fetch once per grid point |
+| [`pycopdem`](https://github.com/thestochasticman/pycopdem) | `Query`, `Config` | Cached Copernicus 30 m DEM + on-read slope/TWI/aspect/HLI — one download per chunk |
 | [`PaddockTS`](https://github.com/thestochasticman/paddock-ts-local) | `Query`, `Config` | Paddock segmentation, time series, phenology, reports |
 
 ---
