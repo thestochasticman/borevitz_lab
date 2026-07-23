@@ -1,0 +1,20 @@
+# Shared Borevitz Lab conda environment.
+#
+# Every lab repo ships an environment.yml targeting this same env name.
+# In any repo, run:
+#
+#   conda env update -n borevitz_lab -f environment.yml
+#
+# — creates the borevitz_lab env if it doesn't exist, and adds that
+# repo's packages to it if it does (never removes anything: don't use
+# --prune). Then: conda activate borevitz_lab && pip install -e .
+name: borevitz_lab
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.11
+  - pip
+  - attrs
+  - tabulate
+  - typing_extensions
