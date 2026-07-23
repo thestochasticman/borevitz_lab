@@ -34,29 +34,14 @@ class Config:
             ]
         )
 
-def _env(*names, default=None):
-    """First set environment variable among names (legacy PADDOCKTS_* last)."""
-    for name in names:
-        value = os.getenv(name)
-        if value is not None:
-            return value
-    return default
-
-_out = _env("BOREVITZ_LAB_OUTDIR", "PADDOCKTS_OUTDIR", default=_out)
-_tmp = _env("BOREVITZ_LAB_TMPDIR", "PADDOCKTS_TMPDIR", default=_tmp)
-_email = _env("BOREVITZ_LAB_EMAIL", "PADDOCKTS_EMAIL") # default None
-_tern_api_key = _env("BOREVITZ_LAB_TERN_KEY", "PADDOCKTS_TERN_KEY") # default None
+_out = os.getenv("BOREVITZ_LAB_OUTDIR", _out)
+_tmp = os.getenv("BOREVITZ_LAB_TMPDIR", _tmp)
+_email = os.getenv("BOREVITZ_LAB_EMAIL") # default None
+_tern_api_key = os.getenv("BOREVITZ_LAB_TERN_KEY") # default None
 _default = Config(_out, _tmp, email=_email, tern_api_key=_tern_api_key)
 
-# First existing config file wins: env override, then the new name,
-# then the legacy PaddockTS name.
-_confpaths = [
-    _env("BOREVITZ_LAB_CONFIG", "PADDOCKTS_CONFIG"),
-    os.path.expanduser('~/.config/BorevitzLab.json'),
-    os.path.expanduser('~/.config/PaddockTS.json'),
-]
-confpath = next((p for p in _confpaths if p and exists(p)), None)
-config = Config(**load(open(confpath))) if confpath else _default
+confpath = os.getenv("BOREVITZ_LAB_CONFIG", os.path.expanduser('~/.config/BorevitzLab.json'))
+config = Config(**load(open(confpath))) if exists(confpath) else _default
 
 
 if __name__ == '__main__':

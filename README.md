@@ -73,8 +73,7 @@ first source found:
 | `BOREVITZ_LAB_*` env vars | `BOREVITZ_LAB_OUTDIR`, `BOREVITZ_LAB_TMPDIR`, `BOREVITZ_LAB_EMAIL`, `BOREVITZ_LAB_TERN_KEY` |
 | Built-in defaults | `~/Documents/BorevitzLab-Outputs` · `~/Downloads/BorevitzLab-Tmp` |
 
-Legacy `~/.config/PaddockTS.json` and `PADDOCKTS_*` variables are still
-honoured as fallbacks. Or bypass files entirely:
+Or bypass files entirely:
 
 ```python
 from borevitz_lab.config import Config
