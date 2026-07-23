@@ -1,40 +1,127 @@
 # borevitz-lab
 
-Shared core primitives for [Borevitz Lab](https://borevitzlab.anu.edu.au/)
-pipelines.
+**The shared core of the Borevitz Lab software ecosystem** — one `Query`,
+one `Config`, one conda environment, used by every lab package.
 
-- **`borevitz_lab.query.Query`** — a frozen, hashable request to run a
-  pipeline over a bounding box and date range. Derives cache directories
-  (`tmp_dir`, `out_dir`, `aoi_dir`, `query_dir`) from a `stub` identifier,
-  and maintains a file-locked JSON registry of all queries ever run so
-  repeat runs reuse cached outputs. Constructors: direct bbox,
-  `Query.from_lat_lon(...)` (point + km buffer), and
-  `Query.build_from_paddocks(...)` (envelope of a GeoPackage / Shapefile /
-  GeoJSON — requires the `paddocks` extra).
-- **`borevitz_lab.config.Config`** — output/cache directories plus
-  credentials (SILO email, TERN API key), loaded from
-  `~/.config/BorevitzLab.json` (legacy `~/.config/PaddockTS.json` still honoured) or `BOREVITZ_LAB_*` / legacy `PADDOCKTS_*` environment variables.
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
+[![Borevitz Lab](https://img.shields.io/badge/Borevitz%20Lab-ANU-2ea44f)](https://borevitzlab.anu.edu.au/)
 
-Downstream projects (e.g.
-[PaddockTS](https://github.com/thestochasticman/paddock-ts-local))
-subclass `Query` to add their own derived output paths.
+```python
+from datetime import date
+from borevitz_lab.query import Query
+
+query = Query(
+    bbox=[148.36265, -33.52606, 148.38265, -33.50606],  # [W, S, E, N]
+    start=date(2024, 1, 1),
+    end=date(2024, 12, 31),
+    stub='my_farm',
+)
+```
+
+Every downstream package takes a `Query` and answers it — same identity,
+same caches, same reproducibility guarantees everywhere.
+
+| Package | Built on this core | What it does |
+|---|---|---|
+| [`pysentinel2`](https://github.com/thestochasticman/pysentinel2) | `Query`, `Config` | Self-filling local Sentinel-2 datacube — nothing downloaded twice |
+| [`PaddockTS`](https://github.com/thestochasticman/paddock-ts-local) | `Query`, `Config` | Paddock segmentation, time series, phenology, reports |
+
+---
+
+## `Query` — the identity layer
+
+A **frozen, hashable request**: *this region, this date range*. Two
+queries with the same inputs are the same query — they share every
+cached artefact on disk.
+
+```python
+q.bbox_hash    # region identity  (bbox snapped to ~100 m, then SHA-256)
+q.time_hash    # date-range identity
+q.aoi_dir      # cache shared by every query over this region
+q.query_dir    # cache for this region x this date range
+q.out_dir      # final outputs for this stub
+```
+
+Three ways to build one:
+
+```python
+Query(bbox=[w, s, e, n], start=..., end=..., stub='site_a')
+
+Query.from_lat_lon(lat=-34.38, lon=148.48, buffer_km=2.0,
+                   start=..., end=..., stub='site_b')
+
+Query.build_from_paddocks(paddocks_filepath='paddocks.gpkg',   # .gpkg / .shp / .geojson
+                          start=..., end=..., stub='site_c')
+```
+
+Every constructed query is recorded in a file-locked registry
+(`{out_dir}/queries.json`). Re-running an identical query is a no-op;
+reusing a `stub` for *different* inputs raises `ValueError` — stubs
+uniquely name a query, forever.
+
+## `Config` — the environment layer
+
+Where data lives and which credentials to use. Loaded once, from the
+first source found:
+
+| Source | Example |
+|---|---|
+| `~/.config/BorevitzLab.json` | `{"out_dir": "...", "email": "...", "tern_api_key": "..."}` |
+| `BOREVITZ_LAB_*` env vars | `BOREVITZ_LAB_OUTDIR`, `BOREVITZ_LAB_TMPDIR`, `BOREVITZ_LAB_EMAIL`, `BOREVITZ_LAB_TERN_KEY` |
+| Built-in defaults | `~/Documents/BorevitzLab-Outputs` · `~/Downloads/BorevitzLab-Tmp` |
+
+Legacy `~/.config/PaddockTS.json` and `PADDOCKTS_*` variables are still
+honoured as fallbacks. Or bypass files entirely:
+
+```python
+from borevitz_lab.config import Config
+
+cfg = Config(out_dir='/data/outputs', tmp_dir='/data/tmp')
+q = Query(..., config=cfg)
+```
+
+## Design rules
+
+The conventions every lab package follows:
+
+- **No inheritance.** One generic `Query`; packages *compose* with it
+  (functions and small classes taking a `Query`/`Config`), never
+  subclass it.
+- **`Config` vs `Paths`.** User-settable inputs live on `Config`;
+  locations *derived* from a `Query` or `Config` live on a per-package
+  `Paths` class.
+- **Layered APIs.** Data-layer functions are query-agnostic
+  (`bbox, start, end`); thin `*_query` adapters connect them to the
+  reproducibility layer.
+
+---
 
 ## Install
 
-All lab repos share one conda environment, `borevitz_lab` — each repo's
-`environment.yml` creates it if missing and adds its own packages if it
-exists (never use `--prune`):
+All lab repos share one conda environment, **`borevitz_lab`**. Each
+repo's `environment.yml` creates it if missing and augments it if
+present (additive — never use `--prune`):
 
 ```bash
 conda env update -n borevitz_lab -f environment.yml
 conda activate borevitz_lab
 pip install -e .
-# with geopandas support for build_from_paddocks:
-pip install -e '.[paddocks]'
+```
+
+Optional extra for `Query.build_from_paddocks`:
+
+```bash
+pip install -e '.[paddocks]'   # adds geopandas
 ```
 
 ## Test
 
 ```bash
-python borevitz_lab/query.py  # prints True
+python borevitz_lab/query.py    # True
+python borevitz_lab/config.py   # prints the resolved config
 ```
+
+## License
+
+[MIT](LICENSE) · Borevitz Lab, Australian National University
