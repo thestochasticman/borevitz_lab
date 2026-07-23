@@ -45,5 +45,4 @@ config = Config(**load(open(confpath))) if exists(confpath) else _default
 
 
 if __name__ == '__main__':
-    _config = Config(_out, _tmp)
-    print(_config)
+    print(config)
