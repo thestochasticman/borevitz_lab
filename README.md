@@ -38,10 +38,12 @@ cached artefact on disk.
 ```python
 q.bbox_hash    # region identity  (bbox snapped to ~100 m, then SHA-256)
 q.time_hash    # date-range identity
-q.aoi_dir      # cache shared by every query over this region
-q.query_dir    # cache for this region x this date range
 q.out_dir      # final outputs for this stub
+q.tmp_dir      # scratch space for this stub
 ```
+
+Storage layout is *not* `Query`'s concern — packages derive their own
+cache locations (usually from the hashes) in their own `Paths` class.
 
 Three ways to build one:
 

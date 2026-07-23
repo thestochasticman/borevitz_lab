@@ -15,8 +15,9 @@ import os
 encode = lambda x: sha256(x.encode()).hexdigest()
 build_from_input = F(lambda s: encode(''.join([str(s.bbox), str(s.start), str(s.end)])), takes_self=True)
 
-# Snap bbox to ~100m precision (3 decimal degrees) so near-identical bboxes
-# share an AOI cache. 0.001° ≈ 111m at the equator, ≈ 91m at -35° latitude.
+# Snap bbox to ~100m precision (3 decimal degrees) before hashing, so
+# near-identical bboxes share a region identity (bbox_hash) in the registry.
+# 0.001° ≈ 111m at the equator, ≈ 91m at -35° latitude.
 _AOI_PRECISION = 3
 
 def check_if_stub_exists(stub: str, hash_map: dict[str, ])->bool:
@@ -35,12 +36,13 @@ def locked_registry(path):
 class Query:
     """A request to run a pipeline over a region and time range.
 
-    Generic core shared by Borevitz Lab pipelines. Downstream projects
-    (e.g. PaddockTS) subclass this to add their own derived output paths.
-    Every pipeline stage takes a ``Query`` and writes outputs to paths
-    derived from it (``tmp_dir``, ``out_dir``, ``query_dir``). The object
-    is immutable and hashable; re-running with the same inputs yields the
-    same ``stub`` and reuses cached files on disk.
+    The identity layer of the Borevitz Lab ecosystem: *this region, these
+    dates, this name*. Immutable and hashable — two queries with the same
+    inputs are the same query and share every cached artefact downstream.
+    Storage layout is deliberately NOT this class's concern: packages
+    compose with a ``Query`` (no inheritance) and derive their own cache
+    locations in a per-package ``Paths`` class, typically from
+    ``bbox_hash`` / ``time_hash``.
 
     Attributes:
         bbox: Bounding box ``[west, south, east, north]`` in EPSG:4326
@@ -55,10 +57,9 @@ class Query:
             (``{config.tmp_dir}/{stub}``). Created on init.
         out_dir: Per-query final-outputs directory
             (``{config.out_dir}/{stub}``). Created on init.
-        aoi_dir: Shared cache directory for this (snapped) bbox
-            (``{config.tmp_dir}/aoi/{bbox_hash}``).
-        query_dir: Cache directory for this bbox + time range
-            (``{aoi_dir}/{time_hash}``). Created on init.
+        bbox_hash: Region identity — bbox snapped to ~100 m, then SHA-256.
+            Keys the persistent registry.
+        time_hash: Date-range identity (SHA-256 of ``start`` + ``end``).
         centre_lon: Centre longitude of ``bbox`` (derived).
         centre_lat: Centre latitude of ``bbox`` (derived).
 
@@ -73,7 +74,7 @@ class Query:
             end=date(2023, 12, 31),
             stub='milgadara',
         )
-        q.query_dir  # '.../aoi/<bbox_hash>/<time_hash>'
+        q.out_dir  # '.../BorevitzLab-Outputs/milgadara'
         ```
     """
 
@@ -87,8 +88,6 @@ class Query:
     time_hash: str = field(init=False)
     tmp_dir: str = field(init=False)
     out_dir: str = field(init=False)
-    aoi_dir: str = field(init=False)
-    query_dir: str = field(init=False)
     centre_lon: float = field(init=False)
     centre_lat: float = field(init=False)
 
@@ -96,15 +95,12 @@ class Query:
     time_hash.default(lambda s: encode(f'{s.start}{s.end}'))
     tmp_dir.default(lambda s: f'{s.config.tmp_dir}/{s.stub}')
     out_dir.default(lambda s: f'{s.config.out_dir}/{s.stub}')
-    aoi_dir.default(lambda s: f'{s.config.tmp_dir}/aoi/{s.bbox_hash}')
-    query_dir.default(lambda s: f'{s.aoi_dir}/{s.time_hash}')
     centre_lon.default(lambda s: (s.bbox[0] + s.bbox[2])/2)
     centre_lat.default(lambda s: (s.bbox[1] + s.bbox[3])/2)
 
     def __attrs_post_init__(s: Self):
         makedirs(s.tmp_dir, exist_ok=True)
         makedirs(s.out_dir, exist_ok=True)
-        makedirs(s.query_dir, exist_ok=True)
         s.register()
 
     def register(s: Self) -> None:
