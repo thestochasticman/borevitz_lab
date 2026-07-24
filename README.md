@@ -29,7 +29,7 @@ same caches, same reproducibility guarantees everywhere.
 | [`pyozwald`](https://github.com/thestochasticman/pyozwald) | `Query`, `Config` | Cached OzWALD meteorology + 8-day biophysical series — fetch once per grid point |
 | [`pycopdem`](https://github.com/thestochasticman/pycopdem) | `Query`, `Config` | Cached Copernicus 30 m DEM + on-read slope/TWI/aspect/HLI — one download per chunk |
 | [`pyslga`](https://github.com/thestochasticman/pyslga) | `Query`, `Config` | Cached SLGA soil properties (16 attributes × 6 depths) — one download per chunk |
-| [`PaddockTS`](https://github.com/thestochasticman/paddock-ts-local) | `Query`, `Config` | Paddock segmentation, time series, phenology, reports |
+| [`PaddockTS`](https://github.com/thestochasticman/paddocktimeseries) | `Query`, `Config` | Paddock segmentation, time series, phenology, reports |
 
 ---
 
