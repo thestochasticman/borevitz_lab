@@ -104,7 +104,18 @@ The conventions every lab package follows:
 
 ## Install
 
-### Conda (recommended)
+### The whole lab in one command
+
+`borevitz_lab.yml` builds the entire ecosystem — this core, the five
+data stores, PaddockTS, JupyterLab, and the full geospatial/ML stack —
+from the public conda channel, no checkouts:
+
+```bash
+conda env create -f https://raw.githubusercontent.com/thestochasticman/borevitz_lab/main/borevitz_lab.yml
+conda activate borevitz_lab
+```
+
+### Just this package
 
 ```bash
 conda install -c conda-forge -c thestochasticman borevitz-lab

@@ -1,0 +1,22 @@
+# The Borevitz Lab conda environment — installs the entire published
+# ecosystem from anaconda.org + conda-forge, no source checkouts.
+#
+# Recreate locally:
+#     conda env create -f borevitz_lab.yml
+#     conda activate borevitz_lab
+#
+# Or, once published to anaconda.org:
+#     conda env create thestochasticman/borevitz_lab
+#
+# `paddocktimeseries` pulls in borevitz-lab and the five data stores
+# (pysentinel2, pysilo, pyozwald, pycopdem, pyslga) plus the full
+# geospatial/ML stack (GDAL, PyTorch, TensorFlow, Segment Anything, …).
+name: borevitz_lab
+channels:
+  - conda-forge
+  - pytorch
+  - thestochasticman
+dependencies:
+  - python=3.11
+  - paddocktimeseries
+  - jupyterlab      # for the demo notebooks
