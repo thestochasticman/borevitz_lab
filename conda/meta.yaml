@@ -1,0 +1,37 @@
+{% set version = "0.1.0" %}
+
+package:
+  name: borevitz-lab
+  version: {{ version }}
+
+source:
+  path: ..
+
+build:
+  noarch: python
+  number: 0
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+
+requirements:
+  host:
+    - python >=3.11
+    - pip
+    - setuptools >=61
+    - wheel
+  run:
+    - python >=3.11
+    - attrs
+    - tabulate
+    - typing_extensions
+
+test:
+  imports:
+    - borevitz_lab
+    - borevitz_lab.query
+    - borevitz_lab.config
+
+about:
+  home: https://github.com/thestochasticman/borevitz_lab
+  license: MIT
+  license_file: LICENSE
+  summary: Shared Query/Config core for Borevitz Lab pipelines

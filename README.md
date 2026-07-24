@@ -104,6 +104,14 @@ The conventions every lab package follows:
 
 ## Install
 
+### Conda (recommended)
+
+```bash
+conda install -c conda-forge -c thestochasticman borevitz-lab
+```
+
+### From source
+
 All lab repos share one conda environment, **`borevitz_lab`**. Each
 repo's `environment.yml` creates it if missing and augments it if
 present (additive — never use `--prune`):
